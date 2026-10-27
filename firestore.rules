@@ -1,0 +1,215 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 1. Global Safety Net (Default-Deny)
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // 2. Hardened Global Helpers
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerifiedUser() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isAdmin() {
+      return isVerifiedUser() && (
+        request.auth.token.email == 'gameszoom325@gmail.com' ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    // 3. Entity Validation Blueprints (Synchronized with firebase-blueprint.json)
+    function isValidUserProfile(data) {
+      return data.keys().hasAll(['uid', 'displayName', 'role', 'department', 'createdAt', 'updatedAt']) &&
+        data.keys().hasOnly(['uid', 'displayName', 'role', 'department', 'createdAt', 'updatedAt']) &&
+        data.uid is string && data.uid.size() >= 1 && data.uid.size() <= 128 && data.uid.matches('^[a-zA-Z0-9_\\-]+$') &&
+        data.uid == request.auth.uid &&
+        data.displayName is string && data.displayName.size() >= 1 && data.displayName.size() <= 100 &&
+        data.role is string && data.role.size() >= 5 && data.role.size() <= 32 &&
+        (data.role == 'construction_worker' || data.role == 'construction_admin' || data.role == 'college_student' || data.role == 'college_admin') &&
+        data.department is string && data.department.size() >= 1 && data.department.size() <= 100 &&
+        data.createdAt is timestamp &&
+        data.updatedAt is timestamp;
+    }
+
+    function isValidAttendanceRecord(data) {
+      return data.keys().hasAll(['userId', 'userName', 'portalType', 'dateLabel', 'checkInTime', 'checkOutTime', 'regularHours', 'overtimeHours', 'status', 'createdAt', 'updatedAt']) &&
+        data.keys().hasOnly(['userId', 'userName', 'portalType', 'dateLabel', 'checkInTime', 'checkOutTime', 'regularHours', 'overtimeHours', 'status', 'createdAt', 'updatedAt']) &&
+        data.userId is string && data.userId.size() >= 1 && data.userId.size() <= 128 && data.userId.matches('^[a-zA-Z0-9_\\-]+$') &&
+        data.userName is string && data.userName.size() >= 1 && data.userName.size() <= 100 &&
+        data.portalType is string && data.portalType.size() >= 5 && data.portalType.size() <= 20 &&
+        (data.portalType == 'construction' || data.portalType == 'college') &&
+        data.dateLabel is string && data.dateLabel.size() >= 1 && data.dateLabel.size() <= 40 &&
+        data.checkInTime is string && data.checkInTime.size() >= 1 && data.checkInTime.size() <= 40 &&
+        data.checkOutTime is string && data.checkOutTime.size() >= 1 && data.checkOutTime.size() <= 40 &&
+        data.regularHours is number && data.regularHours >= 0 && data.regularHours <= 24 &&
+        data.overtimeHours is number && data.overtimeHours >= 0 && data.overtimeHours <= 24 &&
+        data.status is string && data.status.size() >= 4 && data.status.size() <= 24 &&
+        (data.status == 'Checked In' || data.status == 'Completed' || data.status == 'Late') &&
+        data.createdAt is timestamp &&
+        data.updatedAt is timestamp;
+    }
+
+    function isValidSafetyComplaint(data) {
+      return data.keys().hasAll(['authorId', 'authorName', 'portalType', 'title', 'category', 'location', 'priority', 'status', 'description', 'createdAt', 'updatedAt']) &&
+        data.keys().hasOnly(['authorId', 'authorName', 'portalType', 'title', 'category', 'location', 'priority', 'status', 'description', 'createdAt', 'updatedAt']) &&
+        data.authorId is string && data.authorId.size() >= 1 && data.authorId.size() <= 128 && data.authorId.matches('^[a-zA-Z0-9_\\-]+$') &&
+        data.authorName is string && data.authorName.size() >= 1 && data.authorName.size() <= 100 &&
+        data.portalType is string && data.portalType.size() >= 5 && data.portalType.size() <= 20 &&
+        (data.portalType == 'construction' || data.portalType == 'college') &&
+        data.title is string && data.title.size() >= 1 && data.title.size() <= 140 &&
+        data.category is string && data.category.size() >= 1 && data.category.size() <= 60 &&
+        data.location is string && data.location.size() >= 1 && data.location.size() <= 100 &&
+        data.priority is string && data.priority.size() >= 3 && data.priority.size() <= 16 &&
+        (data.priority == 'Low' || data.priority == 'Medium' || data.priority == 'High' || data.priority == 'Critical') &&
+        data.status is string && data.status.size() >= 6 && data.status.size() <= 24 &&
+        (data.status == 'Submitted' || data.status == 'Under Review' || data.status == 'Resolved') &&
+        data.description is string && data.description.size() >= 1 && data.description.size() <= 1000 &&
+        data.createdAt is timestamp &&
+        data.updatedAt is timestamp;
+    }
+
+    function isValidSkillRecord(data) {
+      return data.keys().hasAll(['userId', 'userName', 'portalType', 'title', 'issuer', 'issueDate', 'experienceHours', 'verifiedStatus', 'createdAt', 'updatedAt']) &&
+        data.keys().hasOnly(['userId', 'userName', 'portalType', 'title', 'issuer', 'issueDate', 'experienceHours', 'verifiedStatus', 'createdAt', 'updatedAt']) &&
+        data.userId is string && data.userId.size() >= 1 && data.userId.size() <= 128 && data.userId.matches('^[a-zA-Z0-9_\\-]+$') &&
+        data.userName is string && data.userName.size() >= 1 && data.userName.size() <= 100 &&
+        data.portalType is string && data.portalType.size() >= 5 && data.portalType.size() <= 20 &&
+        (data.portalType == 'construction' || data.portalType == 'college') &&
+        data.title is string && data.title.size() >= 1 && data.title.size() <= 140 &&
+        data.issuer is string && data.issuer.size() >= 1 && data.issuer.size() <= 100 &&
+        data.issueDate is string && data.issueDate.size() >= 1 && data.issueDate.size() <= 40 &&
+        data.experienceHours is number && data.experienceHours >= 0 && data.experienceHours <= 10000 &&
+        data.verifiedStatus is string && data.verifiedStatus.size() >= 7 && data.verifiedStatus.size() <= 16 &&
+        (data.verifiedStatus == 'Pending' || data.verifiedStatus == 'Verified') &&
+        data.createdAt is timestamp &&
+        data.updatedAt is timestamp;
+    }
+
+    // 4. Collection Match Blocks
+    match /users/{userId} {
+      allow get: if isSignedIn() && isValidId(userId) && (userId == request.auth.uid || isAdmin());
+      allow list: if isSignedIn() && (existing().uid == request.auth.uid || isAdmin());
+      allow create: if isVerifiedUser() &&
+        isValidId(userId) &&
+        userId == request.auth.uid &&
+        isValidUserProfile(incoming()) &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time &&
+        ((incoming().role == 'construction_worker' || incoming().role == 'college_student') || isAdmin());
+      allow update: if (
+        isVerifiedUser() && isValidId(userId) && isValidUserProfile(incoming()) && (
+          isAdmin() ||
+          (
+            userId == request.auth.uid &&
+            incoming().uid == existing().uid &&
+            incoming().role == existing().role &&
+            incoming().createdAt == existing().createdAt &&
+            incoming().updatedAt == request.time &&
+            incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'department', 'updatedAt'])
+          )
+        )
+      );
+      allow delete: if isAdmin() && isValidId(userId);
+    }
+
+    match /attendance/{recordId} {
+      allow get: if isSignedIn() && isValidId(recordId) && (existing().userId == request.auth.uid || isAdmin());
+      allow list: if isSignedIn() && (existing().userId == request.auth.uid || isAdmin());
+      allow create: if isVerifiedUser() &&
+        isValidId(recordId) &&
+        isValidAttendanceRecord(incoming()) &&
+        incoming().userId == request.auth.uid &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time &&
+        exists(/databases/$(database)/documents/users/$(incoming().userId));
+      allow update: if (
+        isVerifiedUser() && isValidId(recordId) && isValidAttendanceRecord(incoming()) && (
+          isAdmin() ||
+          (
+            existing().userId == request.auth.uid &&
+            existing().status != 'Completed' &&
+            incoming().userId == existing().userId &&
+            incoming().createdAt == existing().createdAt &&
+            incoming().updatedAt == request.time &&
+            incoming().diff(existing()).affectedKeys().hasOnly(['checkOutTime', 'regularHours', 'overtimeHours', 'status', 'updatedAt'])
+          )
+        )
+      );
+      allow delete: if isAdmin() && isValidId(recordId);
+    }
+
+    match /complaints/{complaintId} {
+      allow get: if isSignedIn() && isValidId(complaintId) && (existing().authorId == request.auth.uid || isAdmin());
+      allow list: if isSignedIn() && (existing().authorId == request.auth.uid || isAdmin());
+      allow create: if isVerifiedUser() &&
+        isValidId(complaintId) &&
+        isValidSafetyComplaint(incoming()) &&
+        incoming().authorId == request.auth.uid &&
+        incoming().status == 'Submitted' &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time &&
+        exists(/databases/$(database)/documents/users/$(incoming().authorId));
+      allow update: if (
+        isVerifiedUser() && isValidId(complaintId) && isValidSafetyComplaint(incoming()) && (
+          isAdmin() ||
+          (
+            existing().authorId == request.auth.uid &&
+            existing().status != 'Resolved' &&
+            incoming().authorId == existing().authorId &&
+            incoming().status == existing().status &&
+            incoming().createdAt == existing().createdAt &&
+            incoming().updatedAt == request.time &&
+            incoming().diff(existing()).affectedKeys().hasOnly(['description', 'priority', 'updatedAt'])
+          )
+        )
+      );
+      allow delete: if isAdmin() && isValidId(complaintId);
+    }
+
+    match /skills/{skillId} {
+      allow get: if isSignedIn() && isValidId(skillId) && (existing().userId == request.auth.uid || isAdmin());
+      allow list: if isSignedIn() && (existing().userId == request.auth.uid || isAdmin());
+      allow create: if isVerifiedUser() &&
+        isValidId(skillId) &&
+        isValidSkillRecord(incoming()) &&
+        incoming().userId == request.auth.uid &&
+        (incoming().verifiedStatus == 'Pending' || isAdmin()) &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time &&
+        exists(/databases/$(database)/documents/users/$(incoming().userId));
+      allow update: if (
+        isVerifiedUser() && isValidId(skillId) && isValidSkillRecord(incoming()) && (
+          isAdmin() ||
+          (
+            existing().userId == request.auth.uid &&
+            existing().verifiedStatus != 'Verified' &&
+            incoming().userId == existing().userId &&
+            incoming().verifiedStatus == existing().verifiedStatus &&
+            incoming().createdAt == existing().createdAt &&
+            incoming().updatedAt == request.time &&
+            incoming().diff(existing()).affectedKeys().hasOnly(['title', 'issuer', 'issueDate', 'experienceHours', 'updatedAt'])
+          )
+        )
+      );
+      allow delete: if isAdmin() && isValidId(skillId);
+    }
+  }
+}

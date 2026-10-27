@@ -1,0 +1,6 @@
+{
+  "name": "ShiftSync AI",
+  "description": "A workforce and academic transparency platform that makes shifts, attendance, safety reporting, and skill verification fair, safe, and organized for workers, students, and administrators.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

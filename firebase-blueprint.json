@@ -1,0 +1,280 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Public profile and role assignment for a ShiftSync AI user.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "description": "Firebase Auth UID of the user.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "displayName": {
+          "type": "string",
+          "description": "Full display name of the worker, student, or administrator.",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "role": {
+          "type": "string",
+          "description": "Assigned portal role.",
+          "enum": ["construction_worker", "construction_admin", "college_student", "college_admin"],
+          "minLength": 5,
+          "maxLength": 32
+        },
+        "department": {
+          "type": "string",
+          "description": "Site sector or academic department.",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when the profile was created."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when the profile was last updated."
+        }
+      },
+      "required": ["uid", "displayName", "role", "department", "createdAt", "updatedAt"]
+    },
+    "AttendanceRecord": {
+      "title": "AttendanceRecord",
+      "description": "Shift or academic attendance check-in/check-out log.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "UID of the user who logged attendance.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "userName": {
+          "type": "string",
+          "description": "Name of the worker or student.",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "portalType": {
+          "type": "string",
+          "description": "Portal context for the attendance record.",
+          "enum": ["construction", "college"],
+          "minLength": 5,
+          "maxLength": 20
+        },
+        "dateLabel": {
+          "type": "string",
+          "description": "Formatted date label for the shift or class.",
+          "minLength": 1,
+          "maxLength": 40
+        },
+        "checkInTime": {
+          "type": "string",
+          "description": "Check-in time label.",
+          "minLength": 1,
+          "maxLength": 40
+        },
+        "checkOutTime": {
+          "type": "string",
+          "description": "Check-out time label.",
+          "minLength": 1,
+          "maxLength": 40
+        },
+        "regularHours": {
+          "type": "number",
+          "description": "Regular shift or session hours completed."
+        },
+        "overtimeHours": {
+          "type": "number",
+          "description": "Overtime hours completed."
+        },
+        "status": {
+          "type": "string",
+          "description": "Attendance status.",
+          "enum": ["Checked In", "Completed", "Late"],
+          "minLength": 4,
+          "maxLength": 24
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of creation."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of update."
+        }
+      },
+      "required": ["userId", "userName", "portalType", "dateLabel", "checkInTime", "checkOutTime", "regularHours", "overtimeHours", "status", "createdAt", "updatedAt"]
+    },
+    "SafetyComplaint": {
+      "title": "SafetyComplaint",
+      "description": "Workplace hazard report or campus complaint.",
+      "type": "object",
+      "properties": {
+        "authorId": {
+          "type": "string",
+          "description": "UID of the reporting worker or student.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "authorName": {
+          "type": "string",
+          "description": "Name of the reporter.",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "portalType": {
+          "type": "string",
+          "description": "Construction or college portal type.",
+          "enum": ["construction", "college"],
+          "minLength": 5,
+          "maxLength": 20
+        },
+        "title": {
+          "type": "string",
+          "description": "Concise title of the hazard or complaint.",
+          "minLength": 1,
+          "maxLength": 140
+        },
+        "category": {
+          "type": "string",
+          "description": "Category of the issue.",
+          "minLength": 1,
+          "maxLength": 60
+        },
+        "location": {
+          "type": "string",
+          "description": "Site zone or campus building.",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "priority": {
+          "type": "string",
+          "description": "Priority severity level.",
+          "enum": ["Low", "Medium", "High", "Critical"],
+          "minLength": 3,
+          "maxLength": 16
+        },
+        "status": {
+          "type": "string",
+          "description": "Workflow resolution status.",
+          "enum": ["Submitted", "Under Review", "Resolved"],
+          "minLength": 6,
+          "maxLength": 24
+        },
+        "description": {
+          "type": "string",
+          "description": "Detailed description of the hazard or complaint.",
+          "minLength": 1,
+          "maxLength": 1000
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server creation timestamp."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server update timestamp."
+        }
+      },
+      "required": ["authorId", "authorName", "portalType", "title", "category", "location", "priority", "status", "description", "createdAt", "updatedAt"]
+    },
+    "SkillRecord": {
+      "title": "SkillRecord",
+      "description": "Training certificate or skill passport entry.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "UID of the credential holder.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "userName": {
+          "type": "string",
+          "description": "Name of the worker or student.",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "portalType": {
+          "type": "string",
+          "description": "Construction or college portal type.",
+          "enum": ["construction", "college"],
+          "minLength": 5,
+          "maxLength": 20
+        },
+        "title": {
+          "type": "string",
+          "description": "Certificate or skill title.",
+          "minLength": 1,
+          "maxLength": 140
+        },
+        "issuer": {
+          "type": "string",
+          "description": "Issuing authority or academic department.",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "issueDate": {
+          "type": "string",
+          "description": "Date issued.",
+          "minLength": 1,
+          "maxLength": 40
+        },
+        "experienceHours": {
+          "type": "number",
+          "description": "Logged practical or course hours."
+        },
+        "verifiedStatus": {
+          "type": "string",
+          "description": "Verification status.",
+          "enum": ["Pending", "Verified"],
+          "minLength": 7,
+          "maxLength": 16
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server creation timestamp."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server update timestamp."
+        }
+      },
+      "required": ["userId", "userName", "portalType", "title", "issuer", "issueDate", "experienceHours", "verifiedStatus", "createdAt", "updatedAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserProfile" },
+      "description": "User profiles keyed by Firebase Auth UID."
+    },
+    "/attendance/{recordId}": {
+      "schema": { "$ref": "#/entities/AttendanceRecord" },
+      "description": "Worker shift and student attendance records."
+    },
+    "/complaints/{complaintId}": {
+      "schema": { "$ref": "#/entities/SafetyComplaint" },
+      "description": "Workplace safety hazards and student complaints."
+    },
+    "/skills/{skillId}": {
+      "schema": { "$ref": "#/entities/SkillRecord" },
+      "description": "Skill passport certificates and experience logs."
+    }
+  }
+}
